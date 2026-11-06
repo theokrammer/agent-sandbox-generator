@@ -1,0 +1,6 @@
+{
+  "name": "AgentSandbox: MicroVM Isolation Manager",
+  "description": "Cross-platform lightweight MicroVM orchestrator and zero-persistence workbench for autonomous AI coding agents.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
