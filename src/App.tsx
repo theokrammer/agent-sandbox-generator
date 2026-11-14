@@ -141,7 +141,7 @@ export default function App() {
             onClick={() => setActiveTab('audit')}
             className="hover:text-cyan-400 transition-colors cursor-pointer"
           >
-            Audit Checklist (12/12)
+            Security Audit Lab
           </button>
           <span>·</span>
           <button

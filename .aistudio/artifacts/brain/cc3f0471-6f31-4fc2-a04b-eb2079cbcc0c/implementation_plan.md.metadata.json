@@ -1,6 +1,0 @@
-{
-  "summary": "Updated implementation plan to include the Google AI Agent CLI tooling (Gemini CLI, agy) and OpenCode alongside Claude Code and Aider/Codex. Adds dedicated connection profiles, environment injection templates (GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY), and PTY launcher scripts for all supported agent CLIs.",
-  "updatedAt": "2026-11-06T23:04:57.191731067Z",
-  "requestFeedback": true,
-  "userFacing": true
-}

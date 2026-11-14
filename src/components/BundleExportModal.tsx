@@ -11,6 +11,7 @@ import {
   generateLaunchScript,
   generateNukeScript,
   generateAgentLauncher,
+  generateVerifyScript,
 } from '../utils/generator';
 import {
   X,
@@ -61,9 +62,11 @@ export const BundleExportModal: React.FC<BundleExportModalProps> = ({
   const geminiLauncher = generateAgentLauncher('gemini');
   const claudeLauncher = generateAgentLauncher('claude');
   const opencodeLauncher = generateAgentLauncher('opencode');
+  const aiderLauncher = generateAgentLauncher('aider');
+  const verifyScript = generateVerifyScript(config);
 
   const readme = `# AgentSandbox Quickstart Guide
-Generated on: 2026-11-06
+Generated on: 2026-11-13
 Host: ${config.hostPlatform.toUpperCase()} | Guest: ${config.guestOs.toUpperCase()}
 
 ## 1. Setup SSH Keypair & Config
@@ -71,10 +74,15 @@ Copy the snippet in ssh-agent.conf into your laptop's ~/.ssh/config.
 Make sure you have an isolated key generated:
   ssh-keygen -t ed25519 -N "" -f ~/.ssh/agent_sandbox_ed25519
 
-## 2. Launch the MicroVM
-Run the 1-click launch script:
-  chmod +x launch-sandbox.sh nuke-and-rebuild.sh firewall.sh launch-*.sh
+## 2. Launch & Verify the MicroVM
+Run the 1-click launch script (zero host mounts by default), then verify isolation:
+  chmod +x launch-sandbox.sh nuke-and-rebuild.sh verify-sandbox.sh firewall.sh launch-*.sh
   ./launch-sandbox.sh
+  # Optional: pass a project path (mirror into RAM tmpfs by default, or read-only mount):
+  # ./launch-sandbox.sh /path/to/repo
+  # ./launch-sandbox.sh --mount-type mirror /path/to/repo
+  # ./launch-sandbox.sh --mount-type ro /path/to/repo
+  ./verify-sandbox.sh
 
 ## 3. Launch Your Autonomous Agent
 Launch with forced PTY and in-memory secret pipe:
@@ -83,6 +91,8 @@ Launch with forced PTY and in-memory secret pipe:
   ./launch-claude.sh
   # or
   ./launch-opencode.sh
+  # or
+  ./launch-aider.sh
 
 ## 4. Recreate Anytime (Zero Persistence)
 If an agent breaks anything or you want a fresh scratchpad:
@@ -93,12 +103,14 @@ If an agent breaks anything or you want a fresh scratchpad:
     { name: manifestName, content: manifest, type: 'manifest' },
     { name: osConfigName, content: osConfig, type: 'os' },
     { name: 'launch-sandbox.sh', content: launchScript, type: 'script' },
+    { name: 'verify-sandbox.sh', content: verifyScript, type: 'script' },
     { name: 'nuke-and-rebuild.sh', content: nukeScript, type: 'script' },
     { name: 'firewall.sh', content: firewallScript, type: 'firewall' },
     { name: 'ssh-agent.conf', content: sshConfig, type: 'config' },
     { name: 'launch-gemini.sh', content: geminiLauncher, type: 'launcher' },
     { name: 'launch-claude.sh', content: claudeLauncher, type: 'launcher' },
     { name: 'launch-opencode.sh', content: opencodeLauncher, type: 'launcher' },
+    { name: 'launch-aider.sh', content: aiderLauncher, type: 'launcher' },
     { name: 'README.md', content: readme, type: 'docs' },
   ];
 
@@ -130,9 +142,9 @@ echo "[AgentSandbox] Unpacking configuration into $DEST_DIR..."
 `;
 
     files.forEach((f) => {
-      shellInstaller += `cat << 'EOF' > "${f.name}"
+      shellInstaller += `cat << '__AGENT_SANDBOX_FILE_EOF__' > "${f.name}"
 ${f.content}
-EOF
+__AGENT_SANDBOX_FILE_EOF__
 `;
       if (f.name.endsWith('.sh')) {
         shellInstaller += `chmod +x "${f.name}"\n`;

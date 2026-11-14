@@ -42,15 +42,21 @@ export const NetworkFirewall: React.FC<NetworkFirewallProps> = ({ config, onChan
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const runProbe = (destination: string, type: 'lan' | 'metadata' | 'api' | 'pkg') => {
-    let status: 'dropped' | 'allowed' = 'allowed';
+  const runProbe = (destination: string, type: 'lan' | 'metadata' | 'cgnat' | 'ipv6' | 'api' | 'pkg') => {
+    let status: 'dropped' | 'allowed' = 'dropped';
 
-    if (type === 'lan' && fw.blockRfc1918) {
-      status = 'dropped';
-    } else if (type === 'metadata' && fw.blockCloudMetadata) {
-      status = 'dropped';
-    } else if (type === 'api' || type === 'pkg') {
-      status = 'allowed';
+    if (type === 'lan') {
+      status = fw.blockRfc1918 ? 'dropped' : 'allowed';
+    } else if (type === 'cgnat') {
+      status = fw.blockRfc1918 ? 'dropped' : 'allowed';
+    } else if (type === 'metadata') {
+      status = fw.blockCloudMetadata ? 'dropped' : 'allowed';
+    } else if (type === 'ipv6') {
+      status = fw.dropIpv6 ? 'dropped' : 'allowed';
+    } else if (type === 'api') {
+      status = fw.whitelistGoogleApi ? 'allowed' : 'dropped';
+    } else if (type === 'pkg') {
+      status = fw.whitelistPackagist ? 'allowed' : 'dropped';
     }
 
     setProbeLog((prev) => [
@@ -216,25 +222,37 @@ export const NetworkFirewall: React.FC<NetworkFirewallProps> = ({ config, onChan
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button
                 onClick={() => runProbe('192.168.1.1 (Home Router)', 'lan')}
-                className="p-2 rounded bg-slate-950/70 border border-slate-800 hover:border-slate-700 text-left font-mono text-[11px] text-slate-300 hover:text-white"
+                className="p-2 rounded bg-slate-950/70 border border-slate-800 hover:border-slate-700 text-left font-mono text-[11px] text-slate-300 hover:text-white cursor-pointer"
               >
                 Probe 192.168.1.1 (LAN)
               </button>
               <button
+                onClick={() => runProbe('100.64.0.1 (Tailscale/VPN)', 'cgnat')}
+                className="p-2 rounded bg-slate-950/70 border border-slate-800 hover:border-slate-700 text-left font-mono text-[11px] text-slate-300 hover:text-white cursor-pointer"
+              >
+                Probe 100.64.0.1 (VPN)
+              </button>
+              <button
                 onClick={() => runProbe('169.254.169.254 (Metadata)', 'metadata')}
-                className="p-2 rounded bg-slate-950/70 border border-slate-800 hover:border-slate-700 text-left font-mono text-[11px] text-slate-300 hover:text-white"
+                className="p-2 rounded bg-slate-950/70 border border-slate-800 hover:border-slate-700 text-left font-mono text-[11px] text-slate-300 hover:text-white cursor-pointer"
               >
                 Probe 169.254.169.254
               </button>
               <button
+                onClick={() => runProbe('fe80::1 (IPv6 Link-Local)', 'ipv6')}
+                className="p-2 rounded bg-slate-950/70 border border-slate-800 hover:border-slate-700 text-left font-mono text-[11px] text-slate-300 hover:text-white cursor-pointer"
+              >
+                Probe fe80::1 (IPv6)
+              </button>
+              <button
                 onClick={() => runProbe('generativelanguage.googleapis.com', 'api')}
-                className="p-2 rounded bg-slate-950/70 border border-slate-800 hover:border-slate-700 text-left font-mono text-[11px] text-slate-300 hover:text-white"
+                className="p-2 rounded bg-slate-950/70 border border-slate-800 hover:border-slate-700 text-left font-mono text-[11px] text-slate-300 hover:text-white cursor-pointer"
               >
                 Probe Google AI API
               </button>
               <button
                 onClick={() => runProbe('packagist.org (PHP Composer)', 'pkg')}
-                className="p-2 rounded bg-slate-950/70 border border-slate-800 hover:border-slate-700 text-left font-mono text-[11px] text-slate-300 hover:text-white"
+                className="p-2 rounded bg-slate-950/70 border border-slate-800 hover:border-slate-700 text-left font-mono text-[11px] text-slate-300 hover:text-white cursor-pointer"
               >
                 Probe Packagist (PHP)
               </button>
